@@ -3,8 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  
+body{
+  background-color: black;
 }
 
 .Container {
@@ -62,4 +62,54 @@ input[type="number"]::-webkit-inner-spin-button {
   position: relative;
   z-index: 4;
   gap: 30px;
+}
+
+
+
+
+
+
+.Category__Wrapper{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  position: relative;
+  z-index: 4;
+  gap: 50px;
+}
+.Menu__Wrapper{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  position: relative;
+  z-index: 4;
+  gap: 30px;
+}
+
+
+@media(max-width:1000px){
+  .Category__Wrapper{
+    grid-template-columns: repeat(2,1fr);
+  }
+  .Menu__Wrapper{
+    grid-template-columns: repeat(2,1fr);
+
+  }
+}
+@media(max-width:700px){
+  .Category__Wrapper{
+    grid-template-columns: repeat(1,1fr);
+  }
+  .Menu__Wrapper{
+    grid-template-columns: repeat(1,1fr);
+  }
+}
+@media(max-width:500px){
+  .Header{
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  .Header button{
+    width: 100% !important;
+  }
 }

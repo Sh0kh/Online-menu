@@ -1,5 +1,5 @@
 const CONFIG = {
-    API_URL: 'https://ielts.itlive.uz/',
+    API_URL: 'https://api.darxon-res.uz/api',
   };
   
   export default CONFIG;

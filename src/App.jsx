@@ -15,9 +15,9 @@ function App() {
 
           <Route
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <AdminLayout />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           >
             {AdminRoutes.map((route) => (

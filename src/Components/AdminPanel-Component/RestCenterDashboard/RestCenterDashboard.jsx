@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarChart2, Users, CheckCircle, XCircle, Calendar } from 'lucide-react';
 
-export default function StudyCenterDashboard() {
+export default function RestCenterDashboard() {
     const [stats] = useState({
         totalExams: 15,
         totalUsers: 89,

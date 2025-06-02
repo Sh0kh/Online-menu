@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import CategoryCard from '../../Category/CategoryCard';
 import CONFIG from "../../../utils/Config";
 
-export default function Home() {
+import { NavLink } from 'react-router-dom';
+import MenuCard from '../../Menu/MenuCard';
+
+export default function Menu() {
     const [bg, setBg] = useState('');
 
     const getBg = async () => {
@@ -23,15 +25,18 @@ export default function Home() {
 
     return (
         <div className="pb-[50px] relative min-h-[1000px] h-[100%] bg-cover bg-center bg-no-repeat" style={backgroundStyle}>
-            <div className='absolute  h-[100%] z-10 inset-0 bg-[#0000008e]'>
+            <div className='absolute  z-10 inset-0 bg-[#fffffff]'>
 
             </div>
-            <div className="Header relative z-20 flex items-center justify-center bg-[#A79684] p-[20px] rounded-b-[30px]">
+            <div className="Header relative z-20 flex items-center justify-between bg-[#A79684] p-[20px] rounded-b-[30px]">
                 <img src="" alt="Logo" />
+                <NavLink to={'/'}>
+                    <button className='bg-white text-[black] px-[30px] py-[10px] rounded-[10px] duration-500 border-[2px] border-[white] hover:bg-transparent hover:text-[white]'>
+                        Ortga
+                    </button>
+                </NavLink>
             </div>
-            <div className='Container relative z-20'>
-                <CategoryCard/>
-            </div>
+            <MenuCard/>
         </div>
     );
 }

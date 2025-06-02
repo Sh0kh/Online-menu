@@ -7,10 +7,7 @@ import {
     Button,
     Input,
     Typography,
-    Textarea,
 } from "@material-tailwind/react";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { $api } from "../../../utils";
 import { Alert, commonAlert } from "../../../utils/Alert";
@@ -18,32 +15,20 @@ import { Alert, commonAlert } from "../../../utils/Alert";
 export default function StudyCenterCreate({ refresh }) {
     const [open, setOpen] = React.useState(false);
     const [name, setName] = React.useState("");
-    const [phone, setPhone] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const [showPassword, setShowPassword] = React.useState(false);
-    const [email, setEmail] = React.useState("");
-    const [address, setAddress] = React.useState("");
-    const [info, setInfo] = React.useState("");
+    const [sort, setSort] = React.useState("");
     const [file, setFile] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(false);
 
-    const createStudyCenter = async () => {
+    const createCategory = async () => {
         // Валидация обязательных полей
-        if (!name || !phone || !password || !email || !address) {
+        if (!name || !sort) {
             Alert("Barcha majburiy maydonlarni to'ldiring", "error");
             return;
         }
 
-        // Валидация email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            Alert("Email formatini to'g'ri kiriting", "error");
-            return;
-        }
-
-        // Валидация телефона
-        if (phone.length !== 9) {
-            Alert("Telefon raqam 9 ta raqamdan iborat bo'lishi kerak", "error");
+        // Валидация sort - должно быть положительным числом
+        if (isNaN(sort) || parseInt(sort) <= 0) {
+            Alert("Tartib raqami musbat son bo'lishi kerak", "error");
             return;
         }
 
@@ -51,32 +36,24 @@ export default function StudyCenterCreate({ refresh }) {
         try {
             const formData = new FormData();
             formData.append("name", name);
-            formData.append("phone", `+998${phone}`);
-            formData.append("password", password);
-            formData.append("email", email);
-            formData.append("address", address);
-            formData.append("description", info);
+            formData.append("sort", parseInt(sort));
 
             // Добавляем файл только если он выбран
             if (file) {
-                formData.append("logo", file);
+                formData.append("image", file);
             }
 
-            const response = await $api.post(`/admin/study-centers`, formData, {
+            const response = await $api.post(`/admin/categories`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
 
-            Alert("Muvaffaqiyatli qo'shildi", "success");
+            Alert("Kategoriya muvaffaqiyatli qo'shildi", "success");
 
-            refresh()
+            refresh();
             setName("");
-            setPhone("");
-            setPassword("");
-            setEmail("");
-            setAddress("");
-            setInfo("");
+            setSort("");
             setFile(null);
             setOpen(false);
 
@@ -127,109 +104,50 @@ export default function StudyCenterCreate({ refresh }) {
                 onClick={handleOpen}
                 className="bg-blue-600 text-white text-[15px] font-semibold normal-case px-[25px] py-[8px] rounded-[8px] hover:bg-blue-600 shadow-none"
             >
-                Yaratish
+                Kategoriya yaratish
             </Button>
 
             <Dialog
                 open={open}
                 handler={handleOpen}
-                size="xl"
+                size="md"
                 className="p-6 max-h-[90vh] overflow-y-auto"
                 style={{ zIndex: 9000 }}
             >
                 <DialogHeader className="text-gray-800 font-bold text-xl">
-                    Yangi o'quv markaz yaratish
+                    Yangi kategoriya yaratish
                 </DialogHeader>
 
                 <DialogBody className="space-y-4">
                     <Typography variant="small" color="gray" className="mb-2">
-                        Barcha majburiy maydonlarni to'ldiring va saqlang.
+                        Kategoriya ma'lumotlarini kiriting.
                     </Typography>
 
                     <div className="grid grid-cols-1 gap-4">
                         <Input
-                            label="Markaz nomi *"
+                            label="Kategoriya nomi *"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             crossOrigin={undefined}
                             required
+                            placeholder="Masalan: Issiq taomlar"
                         />
-
-                        {/* Телефон с фиксированным +998 */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Telefon raqam *
-                            </label>
-                            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2">
-                                <span className="text-gray-500 text-sm mr-2 select-none">+998</span>
-                                <input
-                                    type="tel"
-                                    value={phone}
-                                    onChange={(e) => {
-                                        const val = e.target.value.replace(/\D/g, "").slice(0, 9);
-                                        setPhone(val);
-                                    }}
-                                    placeholder="901234567"
-                                    className="outline-none flex-1 text-sm bg-transparent"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* Пароль с глазом */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Parol *
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="********"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-[5px] text-gray-600"
-                                >
-                                    {showPassword ? (
-                                        <VisibilityOff className="w-5 h-5" />
-                                    ) : (
-                                        <Visibility className="w-5 h-5" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
 
                         <Input
-                            label="E-Mail *"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            label="Tartib raqami *"
+                            type="number"
+                            value={sort}
+                            onChange={(e) => setSort(e.target.value)}
                             crossOrigin={undefined}
                             required
-                        />
-                        <Input
-                            label="Manzil *"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            crossOrigin={undefined}
-                            required
-                        />
-                        <Textarea
-                            label="Malumot"
-                            value={info}
-                            onChange={(e) => setInfo(e.target.value)}
-                            crossOrigin={undefined}
+                            min="1"
+                            placeholder="1"
                         />
 
-                        {/* Загрузка файла */}
+                        {/* Загрузка изображения */}
                         <div className="w-full">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Logo yuklash
+                                Kategoriya rasmi
                             </label>
                             <div className="flex items-center gap-3 w-full">
                                 <input
@@ -244,7 +162,7 @@ export default function StudyCenterCreate({ refresh }) {
                                     className="cursor-pointer bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
                                 >
                                     <CloudUploadIcon style={{ fontSize: 18 }} />
-                                    Fayl tanlash
+                                    Rasm tanlash
                                 </label>
                                 {file && (
                                     <div className="flex items-center gap-2 flex-1">
@@ -280,7 +198,7 @@ export default function StudyCenterCreate({ refresh }) {
                         Bekor qilish
                     </Button>
                     <Button
-                        onClick={createStudyCenter}
+                        onClick={createCategory}
                         className="bg-blue-600 hover:bg-blue-700"
                         disabled={isLoading}
                     >
