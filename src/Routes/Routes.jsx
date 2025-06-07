@@ -8,6 +8,7 @@ import Login from "../Components/UserPanel-Component/Login/Login";
 import RestCenterDashboard from "../Components/AdminPanel-Component/RestCenterDashboard/RestCenterDashboard";
 import MenuCenter from "../Components/AdminPanel-Component/MenuCenter/MenuCenter";
 import Menu from "../Components/UserPanel-Component/Home/Menu";
+import Restuarant from "../Components/Restuarant/Restuarant";
 
 
 export const UserRoutes = [
@@ -45,6 +46,11 @@ export const AdminRoutes = [
         name: "category",
         path: "/category",
         component: <MenuCenter/>,
+    },
+      {
+        name: "Restaranlar",
+        path: "/restuarant",
+        component: <Restuarant/>,
     },
     {
         name: "Oq`uv markaz",

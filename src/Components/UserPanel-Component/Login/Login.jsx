@@ -3,27 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from '../../../utils/axios';
 
-
 export default function Login() {
-    const [phone, setPhone] = useState('+998');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-
     const navigate = useNavigate();
-
-    const handlePhoneChange = (e) => {
-        let value = e.target.value.replace(/[^\d+]/g, '');
-        if (!value.startsWith('+998')) {
-            value = '+998';
-        }
-        if (value.length > 13) {
-            value = value.slice(0, 13);
-        }
-        setPhone(value);
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,16 +18,25 @@ export default function Login() {
         setError('');
 
         try {
-            const response = await axios.post('/study-center/login', {
-                phone,
-                password,
-            });
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('StId', response.data.study_center?.id);
-            localStorage.setItem('role', 'ST_ADMIN');
-            navigate(`/restaran/dashboard`);
+          const response = await axios.post('/auth/login', {
+  username: username.trim(),
+  password: password.trim(),
+});
+
+            
+
+            const { access_token, refresh_token } = response.data.tokens;
+            const { id, role } = response.data.user;
+
+            localStorage.setItem('access_token', access_token);
+            localStorage.setItem('refresh_token', refresh_token);
+            localStorage.setItem('user_id', id);
+            localStorage.setItem('role', role);
+
+            navigate('/restaran/dashboard');
         } catch (err) {
-            setError('Telefon yoki parol noto‘g‘ri. Iltimos qaytadan urinib ko‘ring.');
+            console.error(err);
+            setError("Login ma'lumotlari noto‘g‘ri. Iltimos tekshirib ko‘ring.");
         } finally {
             setLoading(false);
         }
@@ -49,7 +45,7 @@ export default function Login() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
             <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 space-y-6">
-                <h2 className="text-2xl font-bold text-center text-gray-800">O'quv markazga kirish</h2>
+                <h2 className="text-2xl font-bold text-center text-gray-800">Admin Panelga Kirish</h2>
 
                 {error && (
                     <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded">
@@ -59,19 +55,20 @@ export default function Login() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                            Telefon raqam
+                        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                            Username
                         </label>
                         <input
-                            id="phone"
+                            id="username"
                             type="text"
-                            placeholder="+998970206868"
-                            value={phone}
-                            onChange={handlePhoneChange}
+                            placeholder="Foydalanuvchi nomi"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
                     </div>
+
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                             Parol
@@ -96,6 +93,7 @@ export default function Login() {
                             </button>
                         </div>
                     </div>
+
                     <button
                         type="submit"
                         disabled={loading}
