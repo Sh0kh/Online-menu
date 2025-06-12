@@ -18,25 +18,38 @@ export default function Login() {
         setError('');
 
         try {
-          const response = await axios.post('/auth/login', {
-  username: username.trim(),
-  password: password.trim(),
-});
-
-            
+            const response = await axios.post('/auth/login', {
+                username: username.trim(),
+                password: password.trim(),
+            });
 
             const { access_token, refresh_token } = response.data.tokens;
-            const { id, role } = response.data.user;
+            const { id, role, restaurants } = response.data.user;
 
             localStorage.setItem('access_token', access_token);
             localStorage.setItem('refresh_token', refresh_token);
             localStorage.setItem('user_id', id);
             localStorage.setItem('role', role);
 
-            navigate('/restaran/dashboard');
+            // Save restaurant ids for owner or admin
+            if ((role === 'owner' || role === 'admin') && Array.isArray(restaurants)) {
+                restaurants.forEach((rest, idx) => {
+                    localStorage.setItem(`restaurant_id${idx + 1}`, rest.id);
+                });
+            }
+
+            // Role asosida yo'naltirish
+            if (role === 'super_admin') {
+                navigate('/dashboard');
+            } else if (role === 'admin') {
+                navigate('/dashboard');
+            } else {
+                // Agar boshqa rol bo'lsa, default dashboard ga yo'naltirish
+                navigate('/dashboard');
+            }
         } catch (err) {
             console.error(err);
-            setError("Login ma'lumotlari noto‘g‘ri. Iltimos tekshirib ko‘ring.");
+            setError("Login ma'lumotlari noto'g'ri. Iltimos tekshirib ko'ring.");
         } finally {
             setLoading(false);
         }

@@ -1,14 +1,18 @@
 import AllPayment from "../Components/AdminPanel-Component/Setting/Setting";
 import Dashboard from "../Components/AdminPanel-Component/Dashboard/Dashboard";
-import StudyCenterDetail from "../Components/AdminPanel-Component/StudyCenter-Detail/StudyCenterDetail";
 
 import Profile from "../Components/Profile/Profile";
 import Contact from "../Components/UserPanel-Component/Contact/Contact";
 import Login from "../Components/UserPanel-Component/Login/Login";
-import RestCenterDashboard from "../Components/AdminPanel-Component/RestCenterDashboard/RestCenterDashboard";
-import MenuCenter from "../Components/AdminPanel-Component/MenuCenter/MenuCenter";
+import CategoryCenter from "../Components/AdminPanel-Component/MenuCenter/CategoryCenter";
 import Menu from "../Components/UserPanel-Component/Home/Menu";
 import Restuarant from "../Components/Restuarant/Restuarant";
+import Owners from "../Components/AdminPanel-Component/Owners/Owners";
+import RestaurantVeiw from "../Components/Restuarant/Components/RestaurantVeiw";
+import MenuCenter from "../Components/AdminPanel-Component/MenuCenter/MenuComponents/MenuCenter";
+import Colors from "../Components/AdminPanel-Component/Colors/Colors";
+import Backround from "../Components/AdminPanel-Component/Backround/Backround";
+import Employee from "../Components/Employee/Employee";
 
 
 export const UserRoutes = [
@@ -45,17 +49,45 @@ export const AdminRoutes = [
     {
         name: "category",
         path: "/category",
-        component: <MenuCenter/>,
+        component: <CategoryCenter/>,
     },
       {
         name: "Restaranlar",
         path: "/restuarant",
         component: <Restuarant/>,
     },
-    {
-        name: "Oq`uv markaz",
-        path: "/o'quv_markaz/:studyCenterId",
-        component: <StudyCenterDetail />,
+
+        {
+        name: "Employee",
+        path: "/employee",
+        component: <Employee/>,
+    },
+         {
+        name: "Restaranlar veiw",
+        path: "/restaurant/:id",
+        component: <RestaurantVeiw/>,
+    },
+     
+         {
+        name: "Category veiw",
+        path: "/category/menu/:id",
+        component: <MenuCenter/>,
+    },
+
+             {
+        name: "Ranglar",
+        path: "/colors",
+        component: <Colors/>,
+    },
+      {
+        name: "Backround",
+        path: "/backround",
+        component: <Backround/>,
+    },
+     {
+        name: "Owners",
+        path: "/owners",
+        component: <Owners/>,
     },
     {
         name: "Sozalamalar",
@@ -79,12 +111,7 @@ export const AdminRoutes = [
     // },
 
 
-    // Study-Center
-    {
-        name: "Restaran dashboard",
-        path: "restaran/dashboard",
-        component: <RestCenterDashboard/>,
-    },
+
     // {
     //     name: "Exam",
     //     path: "/o'quv_markaz/imtihon",

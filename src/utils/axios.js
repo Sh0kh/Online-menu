@@ -1,4 +1,4 @@
 import axios from 'axios'
-axios.defaults.baseURL = 'https://online-menu-dscm.onrender.com/api'
+axios.defaults.baseURL = 'https://dev.umenu.uz/api'
 
 export default axios

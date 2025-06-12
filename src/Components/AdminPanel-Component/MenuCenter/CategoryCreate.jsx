@@ -10,12 +10,13 @@ import {
 } from "@material-tailwind/react";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { $api } from "../../../utils";
-import { Alert, commonAlert } from "../../../utils/Alert";
+import { Alert } from "../../../utils/Alert";
 
-export default function StudyCenterCreate({ refresh }) {
+export default function CategoryCreate({ refresh }) {
     const [open, setOpen] = React.useState(false);
     const [name, setName] = React.useState("");
     const [sort, setSort] = React.useState("");
+    const [colorId, setColorId] = React.useState("");
     const [file, setFile] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(false);
 
@@ -32,18 +33,24 @@ export default function StudyCenterCreate({ refresh }) {
             return;
         }
 
+        const restaurant_id = localStorage.getItem("restaurant_id1");
+        if (!restaurant_id) {
+            Alert("Restoran aniqlanmadi. Iltimos, qayta kiring.", "error");
+            return;
+        }
+
         setIsLoading(true);
         try {
             const formData = new FormData();
+            formData.append("restaurant_id", String(restaurant_id));
             formData.append("name", name);
-            formData.append("sort", parseInt(sort));
-
-            // Добавляем файл только если он выбран
+            formData.append("sort", sort);
+            if (colorId !== undefined && colorId !== null && colorId !== "") formData.append("color_id", String(colorId));
             if (file) {
                 formData.append("image", file);
             }
 
-            const response = await $api.post(`/admin/categories`, formData, {
+            await $api.post(`/category`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -51,9 +58,10 @@ export default function StudyCenterCreate({ refresh }) {
 
             Alert("Kategoriya muvaffaqiyatli qo'shildi", "success");
 
-            refresh();
+            refresh && refresh();
             setName("");
             setSort("");
+            setColorId("");
             setFile(null);
             setOpen(false);
 
@@ -142,6 +150,14 @@ export default function StudyCenterCreate({ refresh }) {
                             required
                             min="1"
                             placeholder="1"
+                        />
+
+                        <Input
+                            label="Color ID"
+                            value={colorId}
+                            onChange={(e) => setColorId(e.target.value)}
+                            crossOrigin={undefined}
+                            placeholder="Masalan: #FF5733 yoki 1"
                         />
 
                         {/* Загрузка изображения */}

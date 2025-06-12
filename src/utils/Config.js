@@ -1,5 +1,5 @@
 const CONFIG = {
-    API_URL: 'https://online-menu-dscm.onrender.com/api',
+    API_URL: 'https://dev.umenu.uz/',
   };
   
   export default CONFIG;

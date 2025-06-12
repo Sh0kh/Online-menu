@@ -57,6 +57,6 @@ export const StyledMenuList = styled(MenuList)(({ theme }) => {
                 ? 'none'
                 : 'linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(240, 240, 255, 0.6))',
         backdropFilter: 'blur(8px)',
-        zIndex: 1300,
+        zIndex:  500,
     };
 });
