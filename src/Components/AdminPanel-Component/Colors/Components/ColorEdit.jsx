@@ -1,33 +1,50 @@
-import { useState } from "react";
-import { Dialog, DialogHeader, DialogBody, DialogFooter, Button } from "@material-tailwind/react";
+import { useEffect, useState } from "react";
+import { Dialog, DialogHeader, DialogBody, DialogFooter, Button, Input } from "@material-tailwind/react";
 import { $api } from "../../../../utils";
 
 export default function ColorEdit({
   open,
   onClose,
   colorId,
-  initialTextColor = "#000000",
-  initialBorderColor = "#000000",
+  initialName,
+  initialTextColor,
+  initialBorderColor,
   onSuccess,
 }) {
-  const [textColor, setTextColor] = useState(initialTextColor);
-  const [borderColor, setBorderColor] = useState(initialBorderColor);
+  const [name, setName] = useState(initialName || "");
+  const [textColor, setTextColor] = useState(initialTextColor || "#000000");
+  const [borderColor, setBorderColor] = useState(initialBorderColor || "#000000");
   const [loading, setLoading] = useState(false);
-  const restaurant_id = localStorage.getItem("restaurant_id1");
+
+  // Eski ma'lumotlarni olish (agar prop orqali kelmasa yoki yangilanishi kerak bo'lsa)
+  useEffect(() => {
+    if (colorId) {
+      $api.get(`/color/one/${colorId}`).then(res => {
+        const data = res.data;
+        setName(data.name || "");
+        setTextColor(data.text_color || "#000000");
+        setBorderColor(data.border_color || "#000000");
+      });
+    }
+  }, [colorId, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name.trim()) {
+      alert("Rang nomini kiriting!");
+      return;
+    }
     setLoading(true);
     try {
       await $api.put(`/color/${colorId}`, {
-        restaurant_id,
+        name,
         text_color: textColor,
         border_color: borderColor,
       });
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      alert("Xatolik yuz berdi!");
+      alert("Tahrirlashda xatolik yuz berdi!");
     } finally {
       setLoading(false);
     }
@@ -38,6 +55,12 @@ export default function ColorEdit({
       <form onSubmit={handleSubmit}>
         <DialogHeader>Rangni tahrirlash</DialogHeader>
         <DialogBody className="flex flex-col gap-6">
+          <Input
+            label="Rang nomi"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+          />
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">Text color</label>
             <div className="flex items-center gap-3">

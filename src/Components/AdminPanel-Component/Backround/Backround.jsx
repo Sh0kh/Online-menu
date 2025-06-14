@@ -1,25 +1,31 @@
 import { useEffect, useState } from "react";
 import { $api } from "../../../utils";
 import BackroundCrete from "./BackroundCrete";
-import BackroundEdit from "./BackroundEdit";
 import BackroundDelete from "./BackroundDelete";
+import { TrashIcon } from "@heroicons/react/24/solid";
+import CONFIG from "../../../utils/Config";
 
 export default function Backround() {
-  const [background, setBackground] = useState(null);
+  const [backgrounds, setBackgrounds] = useState([]); // massiv sifatida
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
   const restaurant_id = localStorage.getItem("restaurant_id1");
 
-  // Ma'lumotni yangilash uchun funksiya
   const fetchBackground = async () => {
     setLoading(true);
     try {
-      const res = await $api.get(`/background/${restaurant_id}`);
-      setBackground(res.data || null);
+      const res = await $api.get(`/background/getResId/${restaurant_id}`);
+      if (Array.isArray(res.data)) {
+        setBackgrounds(res.data);
+      } else if (res.data) {
+        setBackgrounds([res.data]);
+      } else {
+        setBackgrounds([]);
+      }
     } catch (err) {
-      setBackground(null);
+      setBackgrounds([]);
     } finally {
       setLoading(false);
     }
@@ -27,12 +33,13 @@ export default function Backround() {
 
   useEffect(() => {
     if (restaurant_id) fetchBackground();
-    // eslint-disable-next-line
   }, [restaurant_id]);
 
   const handleCreate = () => setCreateOpen(true);
-  const handleEdit = () => setEditOpen(true);
-  const handleDelete = () => setDeleteOpen(true);
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setDeleteOpen(true);
+  };
 
   if (loading) {
     return (
@@ -42,6 +49,9 @@ export default function Backround() {
     );
   }
 
+  // Faqat bitta background bo‘lsa, uni olish
+  const background = backgrounds.length > 0 ? backgrounds[0] : null;
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {background ? (
@@ -49,102 +59,74 @@ export default function Backround() {
           <div
             className="relative border-[3px] rounded-[32px] shadow bg-white flex flex-col w-full max-w-2xl min-w-[350px] p-6"
             style={{
-              borderColor: background.border_color || "#A79684",
-              color: background.text_color || "#333",
-              background: background.background_color || "#F5F5DC",
+              borderColor: background.color || "#A79684",
+              background: "#fff",
             }}
           >
-            {/* Edit va Delete tugmalari */}
             <div className="absolute top-4 right-4 flex gap-2 z-10">
               <button
-                onClick={handleEdit}
-                className="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 p-3 rounded-full transition"
-                title="Tahrirlash"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={handleDelete}
+                onClick={() => handleDelete(background.id)}
                 className="bg-red-100 hover:bg-red-200 text-red-700 p-3 rounded-full transition"
                 title="O'chirish"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <TrashIcon className="h-5 w-5" />
               </button>
             </div>
-            {/* Card content */}
             <div
-              className="w-full py-2 rounded-t-[16px] h-[44px] text-center"
+              className="w-full py-2 rounded-t-[16px] mb-[20px] h-[44px] text-center"
               style={{
-                backgroundColor: background.border_color || "#A79684",
+                backgroundColor: background.color || "#A79684",
               }}
             >
-              <span
-                className="font-bold text-lg"
-                style={{ color: background.text_color }}
-              >
-                Backround preview
+              <span className="font-bold text-lg text-white">
+                Background preview
               </span>
             </div>
             <div
-              className="w-full h-64 rounded-b-[16px] flex items-center justify-center"
-              style={{ background: background.background_color || "#F5F5DC" }}
+              className="w-full mt[40px] h-64 rounded-b-[16px] flex items-center justify-center relative"
+              style={{ background: "#fff" }}
             >
-              <span
-                className="text-2xl font-semibold"
-                style={{ color: background.text_color }}
-              >
-                {background.background_color}
-              </span>
+              {background.image && (
+                <img
+                  src={CONFIG.API_URL + background.image}
+                  alt="Background"
+                  className="max-h-full max-w-full object-contain rounded-lg shadow"
+                  style={{ background: "#fff" }}
+                />
+              )}
+              {!background.image && (
+                <span
+                  className="text-2xl font-semibold"
+                  style={{ color: background.color }}
+                >
+                  {background.color}
+                </span>
+              )}
             </div>
             <div className="w-full pt-6">
               <div
                 className="w-[90%] h-[5px] mx-auto my-6 rounded-3xl"
                 style={{
-                  backgroundColor: background.border_color || "#A79684",
+                  backgroundColor: background.color || "#A79684",
                 }}
               ></div>
               <h2
                 className="text-[28px] font-extrabold text-center mb-6"
-                style={{ color: background.text_color }}
+                style={{ color: background.color }}
               >
-                {background.border_color}
+                {background.color}
               </h2>
             </div>
           </div>
         </div>
       ) : (
+        // Faqat create button va "ma'lumot yo'q" chiqadi
         <div className="flex justify-between items-center bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-8 min-h-[220px]">
           <div>
             <h2 className="text-xl font-bold text-gray-500 mb-2">
               Ma’lumot yo‘q
             </h2>
-            <p className="text-gray-400">Backround ma’lumoti topilmadi.</p>
+            <p className="text-gray-400">Background ma’lumoti topilmadi.</p>
           </div>
           <button
             onClick={handleCreate}
@@ -155,7 +137,6 @@ export default function Backround() {
         </div>
       )}
 
-      {/* Modal chaqiruvlar */}
       {createOpen && (
         <BackroundCrete
           open={createOpen}
@@ -166,24 +147,15 @@ export default function Backround() {
           }}
         />
       )}
-      {editOpen && background && (
-        <BackroundEdit
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          background={background}
-          onSuccess={() => {
-            setEditOpen(false);
-            fetchBackground();
-          }}
-        />
-      )}
-      {deleteOpen && background && (
+
+      {deleteOpen && deleteId && (
         <BackroundDelete
           open={deleteOpen}
           onClose={() => setDeleteOpen(false)}
-          backgroundId={background.id}
+          backgroundId={deleteId}
           onSuccess={() => {
             setDeleteOpen(false);
+            setDeleteId(null);
             fetchBackground();
           }}
         />

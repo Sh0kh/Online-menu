@@ -9,7 +9,7 @@ export default function BackroundDelete({ open, onClose, backgroundId, onSuccess
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await $api.delete(`/api/background/${backgroundId}`);
+      await $api.delete(`/background/${backgroundId}`);
       Swal.fire({
         icon: "success",
         title: "O'chirildi!",

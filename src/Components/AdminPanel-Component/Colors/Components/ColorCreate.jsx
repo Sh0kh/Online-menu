@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Dialog, DialogHeader, DialogBody, DialogFooter, Button } from "@material-tailwind/react";
+import { Dialog, DialogHeader, DialogBody, DialogFooter, Button, Input } from "@material-tailwind/react";
 import { $api } from "../../../../utils";
 
 export default function ColorCreate({ open, onClose, onSuccess }) {
+  const [name, setName] = useState("");
   const [textColor, setTextColor] = useState("#000000");
   const [borderColor, setBorderColor] = useState("#000000");
   const [loading, setLoading] = useState(false);
@@ -10,15 +11,23 @@ export default function ColorCreate({ open, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name.trim()) {
+      alert("Rang nomini kiriting!");
+      return;
+    }
     setLoading(true);
     try {
       await $api.post(`/color`, {
         restaurant_id,
+        name,
         text_color: textColor,
         border_color: borderColor,
       });
       if (onSuccess) onSuccess();
       onClose();
+      setName("");
+      setTextColor("#000000");
+      setBorderColor("#000000");
     } catch (err) {
       alert("Yaratishda xatolik yuz berdi!");
     } finally {
@@ -31,6 +40,12 @@ export default function ColorCreate({ open, onClose, onSuccess }) {
       <form onSubmit={handleSubmit}>
         <DialogHeader>Yangi rang yaratish</DialogHeader>
         <DialogBody className="flex flex-col gap-6">
+          <Input
+            label="Rang nomi"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+          />
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">Text color</label>
             <div className="flex items-center gap-3">

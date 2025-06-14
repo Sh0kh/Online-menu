@@ -1,12 +1,20 @@
- import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogHeader, DialogBody, DialogFooter, Button, Input } from "@material-tailwind/react";
 import { $api } from "../../../utils";
+import CONFIG from "../../../utils/Config";
 
-export default function BackroundEdit({ open, onClose, background, onSuccess }) {
+export default function BackroundEdit({ open, onClose, id, background, onSuccess }) {
   const [color, setColor] = useState(background?.color || "#F5F5DC");
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(background?.image || null);
   const [loading, setLoading] = useState(false);
+
+  // id yoki background o'zgarsa, inputlarni yangilash
+  useEffect(() => {
+    setColor(background?.color || "#F5F5DC");
+    setImagePreview(background?.image || null);
+    setImage(null);
+  }, [background, id]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -26,7 +34,7 @@ export default function BackroundEdit({ open, onClose, background, onSuccess }) 
       formData.append("color", color);
       if (image) formData.append("image", image);
 
-      await $api.patch(`/api/background/${background.id}`, formData);
+      await $api.put(`/background/${id}`, formData);
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
@@ -61,7 +69,7 @@ export default function BackroundEdit({ open, onClose, background, onSuccess }) 
             />
             {imagePreview && (
               <img
-                src={imagePreview}
+                src={typeof imagePreview === "string" && !image ? (imagePreview.startsWith("data:") ? imagePreview : (background?.image ? (import("../../../utils/Config").then(cfg => cfg.default.API_URL + imagePreview)) : imagePreview)) : imagePreview}
                 alt="Preview"
                 className="mt-3 rounded-lg border w-full max-h-40 object-contain"
               />

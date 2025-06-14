@@ -21,18 +21,16 @@ export default function BackroundCrete({ open, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!color || !image) {
-      alert("Barcha maydonlarni to'ldiring!");
-      return;
-    }
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("restaurant_id", restaurant_id);
       formData.append("color", color);
-      formData.append("image", image);
+      formData.append("restaurant_id", restaurant_id);
+      if (image) formData.append("image", image);
 
-      await $api.post("/background", formData);
+      await $api.post("/background", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
@@ -45,7 +43,7 @@ export default function BackroundCrete({ open, onClose, onSuccess }) {
   return (
     <Dialog open={open} handler={onClose} size="sm">
       <form onSubmit={handleSubmit}>
-        <DialogHeader>Backround yaratish</DialogHeader>
+        <DialogHeader>Background yaratish</DialogHeader>
         <DialogBody className="flex flex-col gap-6">
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">Rang</label>
@@ -64,7 +62,6 @@ export default function BackroundCrete({ open, onClose, onSuccess }) {
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              required
             />
             {imagePreview && (
               <img
