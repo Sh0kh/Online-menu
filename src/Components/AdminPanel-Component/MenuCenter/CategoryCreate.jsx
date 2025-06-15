@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     Dialog,
     DialogHeader,
@@ -7,33 +7,46 @@ import {
     Button,
     Input,
     Typography,
+    Select,
+    Option
 } from "@material-tailwind/react";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { $api } from "../../../utils";
 import { Alert } from "../../../utils/Alert";
 
 export default function CategoryCreate({ refresh }) {
-    const [open, setOpen] = React.useState(false);
-    const [name, setName] = React.useState("");
-    const [sort, setSort] = React.useState("");
-    const [colorId, setColorId] = React.useState("");
-    const [file, setFile] = React.useState(null);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState("");
+    const [sort, setSort] = useState("");
+    const [colorId, setColorId] = useState("");
+    const [file, setFile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [colors, setColors] = useState([]);
+
+    const restaurant_id = localStorage.getItem("restaurant_id1");
+
+    // Ranglarni olish
+    useEffect(() => {
+        if (open && restaurant_id) {
+            $api.get(`/color/${restaurant_id}`)
+                .then(res => {
+                    if (Array.isArray(res.data)) setColors(res.data);
+                    else if (res.data) setColors([res.data]);
+                    else setColors([]);
+                })
+                .catch(() => setColors([]));
+        }
+    }, [open, restaurant_id]);
 
     const createCategory = async () => {
-        // Валидация обязательных полей
         if (!name || !sort) {
             Alert("Barcha majburiy maydonlarni to'ldiring", "error");
             return;
         }
-
-        // Валидация sort - должно быть положительным числом
         if (isNaN(sort) || parseInt(sort) <= 0) {
             Alert("Tartib raqami musbat son bo'lishi kerak", "error");
             return;
         }
-
-        const restaurant_id = localStorage.getItem("restaurant_id1");
         if (!restaurant_id) {
             Alert("Restoran aniqlanmadi. Iltimos, qayta kiring.", "error");
             return;
@@ -45,26 +58,20 @@ export default function CategoryCreate({ refresh }) {
             formData.append("restaurant_id", String(restaurant_id));
             formData.append("name", name);
             formData.append("sort", sort);
-            if (colorId !== undefined && colorId !== null && colorId !== "") formData.append("color_id", String(colorId));
-            if (file) {
-                formData.append("image", file);
-            }
+            if (colorId) formData.append("color_id", String(colorId));
+            if (file) formData.append("image", file);
 
             await $api.post(`/category`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
             Alert("Kategoriya muvaffaqiyatli qo'shildi", "success");
-
             refresh && refresh();
             setName("");
             setSort("");
             setColorId("");
             setFile(null);
             setOpen(false);
-
         } catch (error) {
             const errorMessage = error?.response?.data?.message || error.message || "Noma'lum xatolik";
             Alert(`Xatolik: ${errorMessage}`, "error");
@@ -77,33 +84,25 @@ export default function CategoryCreate({ refresh }) {
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-
         if (selectedFile) {
-            // Проверяем тип файла
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
             if (!allowedTypes.includes(selectedFile.type)) {
                 Alert("Faqat rasm fayllari (JPEG, PNG, GIF) yuklash mumkin", "error");
                 return;
             }
-
-            // Проверяем размер файла (максимум 5MB)
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxSize = 5 * 1024 * 1024;
             if (selectedFile.size > maxSize) {
                 Alert("Fayl hajmi 5MB dan oshmasligi kerak", "error");
                 return;
             }
-
             setFile(selectedFile);
         }
     };
 
     const removeFile = () => {
         setFile(null);
-        // Очищаем input
         const fileInput = document.getElementById("file-upload");
-        if (fileInput) {
-            fileInput.value = "";
-        }
+        if (fileInput) fileInput.value = "";
     };
 
     return (
@@ -152,13 +151,24 @@ export default function CategoryCreate({ refresh }) {
                             placeholder="1"
                         />
 
-                        <Input
-                            label="Color ID"
+                        <Select
+                            label="Rang tanlang"
                             value={colorId}
-                            onChange={(e) => setColorId(e.target.value)}
-                            crossOrigin={undefined}
-                            placeholder="Masalan: #FF5733 yoki 1"
-                        />
+                            onChange={val => setColorId(val)}
+                            required
+                        >
+                            {colors.map(color => (
+                                <Option key={color.id} value={color.id}>
+                                    <span className="flex items-center gap-2">
+                                        <span
+                                            className="inline-block w-5 h-5 rounded border"
+                                            style={{ background: color.text_color || color.color, borderColor: "#ccc" }}
+                                        ></span>
+                                        {color.name || color.color}
+                                    </span>
+                                </Option>
+                            ))}
+                        </Select>
 
                         {/* Загрузка изображения */}
                         <div className="w-full">

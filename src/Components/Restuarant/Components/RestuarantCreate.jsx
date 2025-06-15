@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactLoading from 'react-loading';
 import Swal from 'sweetalert2';
 import {
@@ -7,25 +7,37 @@ import {
     DialogBody,
     DialogFooter,
     Input,
-    Button
+    Button,
+    Select,
+    Option
 } from "@material-tailwind/react";
 import { $api } from '../../../utils';
 
 export default function RestaurantCreate({ refresh }) {
     const [createModal, setCreateModal] = useState(false);
     const [createLoading, setCreateLoading] = useState(false);
+    const [owners, setOwners] = useState([]);
     const [formData, setFormData] = useState({
         owner_id: '',
         name: '',
         logo_img: null,
-        logo_img_binary: null, // Binary data
-        logo_img_name: '',     // Original filename
-        logo_img_type: '',     // MIME type
+        logo_img_binary: null,
+        logo_img_name: '',
+        logo_img_type: '',
         address: '',
         domen_name: '',
         monthlyFee: ''
     });
     const [previewImage, setPreviewImage] = useState(null);
+
+    // Ownerlarni olish
+    useEffect(() => {
+        if (createModal) {
+            $api.get("/admin")
+                .then(res => setOwners(res.data || []))
+                .catch(() => setOwners([]));
+        }
+    }, [createModal]);
 
     // Convert file to binary (ArrayBuffer)
     const fileToArrayBuffer = (file) => {
@@ -49,11 +61,9 @@ export default function RestaurantCreate({ refresh }) {
 
     const handleInputChange = async (e) => {
         const { name, value, files } = e.target;
-        
+
         if (name === 'logo_img' && files && files[0]) {
             const file = files[0];
-            
-            // Проверяем, что это действительно файл изображения
             if (!file.type.startsWith('image/')) {
                 Swal.fire({
                     title: 'Iltimos, faqat rasm fayl tanlang!',
@@ -67,35 +77,18 @@ export default function RestaurantCreate({ refresh }) {
                 });
                 return;
             }
-
             try {
-                // Конвертируем файл в binary (ArrayBuffer)
                 const binaryData = await fileToArrayBuffer(file);
-                
-                // Создаем превью для отображения
                 const base64Preview = await fileToBase64(file);
-                
-                // Сохраняем все данные о файле
                 setFormData(prev => ({
                     ...prev,
-                    logo_img: file,                    // Оригинальный File объект
-                    logo_img_binary: binaryData,       // Binary данные (ArrayBuffer)
-                    logo_img_name: file.name,          // Имя файла
-                    logo_img_type: file.type           // MIME тип
+                    logo_img: file,
+                    logo_img_binary: binaryData,
+                    logo_img_name: file.name,
+                    logo_img_type: file.type
                 }));
-                
                 setPreviewImage(base64Preview);
-                
-                console.log('Файл конвертирован в binary:', {
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    binarySize: binaryData.byteLength,
-                    lastModified: file.lastModified
-                });
-                
             } catch (error) {
-                console.error('Ошибка при конвертации файла:', error);
                 Swal.fire({
                     title: 'Xatolik yuz berdi!',
                     text: 'Fayl yuklanishida xatolik',
@@ -113,6 +106,10 @@ export default function RestaurantCreate({ refresh }) {
         }
     };
 
+    const handleOwnerChange = (val) => {
+        setFormData(prev => ({ ...prev, owner_id: val }));
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
         if (!formData.name || !formData.address || !formData.domen_name) {
@@ -128,60 +125,28 @@ export default function RestaurantCreate({ refresh }) {
             });
             return;
         }
-        
+
         setCreateLoading(true);
         try {
             const formDataToSend = new FormData();
-            
-            // Добавляем обязательные поля
             formDataToSend.append('name', formData.name);
             formDataToSend.append('address', formData.address);
             formDataToSend.append('domen_name', formData.domen_name);
             formDataToSend.append('monthlyFee', formData.monthlyFee);
-            
             if (formData.owner_id) {
                 formDataToSend.append('owner_id', formData.owner_id);
             }
-
-            // Добавляем изображение как binary данные
             if (formData.logo_img_binary && formData.logo_img_name) {
-                // Создаем Blob из ArrayBuffer для отправки
-                const imageBlob = new Blob([formData.logo_img_binary], { 
-                    type: formData.logo_img_type 
+                const imageBlob = new Blob([formData.logo_img_binary], {
+                    type: formData.logo_img_type
                 });
-                
                 formDataToSend.append('logo_img', imageBlob, formData.logo_img_name);
-                
-                console.log('Binary изображение добавлено:', {
-                    name: formData.logo_img_name,
-                    type: formData.logo_img_type,
-                    size: formData.logo_img_binary.byteLength,
-                    blobSize: imageBlob.size
-                });
             }
-
-            // Логируем содержимое FormData для отладки
-            console.log('FormData содержимое:');
-            for (let [key, value] of formDataToSend.entries()) {
-                if (value instanceof File || value instanceof Blob) {
-                    console.log(key, '(Binary):', {
-                        name: value.name || 'blob',
-                        size: value.size,
-                        type: value.type
-                    });
-                } else {
-                    console.log(key, ':', value);
-                }
-            }
-
-            const response = await $api.post('/restaurant', formDataToSend, {
+            await $api.post('/restaurant', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             });
-            
-            console.log('Ответ сервера:', response);
-            
             Swal.fire({
                 title: 'Restoran muvaffaqiyatli yaratildi!',
                 icon: 'success',
@@ -195,7 +160,6 @@ export default function RestaurantCreate({ refresh }) {
             closeModal();
             if (refresh) refresh();
         } catch (error) {
-            console.error('Ошибка при создании ресторана:', error);
             Swal.fire({
                 title: 'Xatolik yuz berdi!',
                 text: error.response?.data?.message || 'Noma\'lum xatolik',
@@ -249,14 +213,18 @@ export default function RestaurantCreate({ refresh }) {
                 <DialogHeader>Yangi restoran yaratish</DialogHeader>
                 <form onSubmit={handleCreate}>
                     <DialogBody className="space-y-5">
-                        <Input
-                            label="Ega IDsi"
-                            name="owner_id"
+                        <Select
+                            label="Ega (owner) tanlang"
                             value={formData.owner_id}
-                            onChange={handleInputChange}
-                            className=""
-                            placeholder="Ega ID sini kiriting"
-                        />
+                            onChange={handleOwnerChange}
+                            required
+                        >
+                            {owners.map(owner => (
+                                <Option key={owner.id} value={owner.id}>
+                                    {owner.name || owner.full_name || owner.username || owner.email || owner.id}
+                                </Option>
+                            ))}
+                        </Select>
                         <Input
                             label="Restoran nomi *"
                             name="name"

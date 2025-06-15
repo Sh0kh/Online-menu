@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { $api } from '../../../utils';
 import { Card, CardBody, Typography, Button } from '@material-tailwind/react';
 import ReactLoading from 'react-loading';
+import CONFIG from '../../../utils/Config';
 
 export default function RestaurantVeiw() {
     const { id } = useParams();
@@ -44,7 +45,7 @@ export default function RestaurantVeiw() {
             <Card className="w-full max-w-2xl shadow-2xl rounded-3xl  bg-white/90">
                 <div className="relative h-56 w-full rounded-t-3xl overflow-hidden flex items-center justify-center bg-gradient-to-r from-blue-400 to-blue-600">
                     <img
-                        src={restaurant.image || 'https://via.placeholder.com/600x300?text=Restaurant'}
+                        src={CONFIG.API_URL + restaurant.image || 'https://via.placeholder.com/600x300?text=Restaurant'}
                         alt={restaurant.name}
                         className="w-full h-full object-cover opacity-80"
                     />
