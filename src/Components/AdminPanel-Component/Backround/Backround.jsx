@@ -53,7 +53,7 @@ export default function Backround() {
   const background = backgrounds.length > 0 ? backgrounds[0] : null;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 ">
       {background ? (
         <div className="flex justify-center">
           <div
@@ -120,7 +120,6 @@ export default function Backround() {
           </div>
         </div>
       ) : (
-        // Faqat create button va "ma'lumot yo'q" chiqadi
         <div className="flex justify-between items-center bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-8 min-h-[220px]">
           <div>
             <h2 className="text-xl font-bold text-gray-500 mb-2">
