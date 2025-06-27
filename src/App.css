@@ -8,6 +8,11 @@
   margin: 0 auto;
   padding: 0 15px !important;
 
+
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 .container {
@@ -178,6 +183,28 @@ input[type=number] {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+
+.UserHero {
+  background-image: url('./Images/Bguset.avif');
+  background-position: center;
+  /* background-repeat: no-repeat; */
+  background-size: cover;
+}
+
+.Service {
+  background-image: url('./Images/Bg2.avif');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
+
+.Contact {
+  background-image: url('./Images/bg3.avif');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
 }
 
 

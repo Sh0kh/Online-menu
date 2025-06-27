@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { $api } from "../../../../utils";
-import { Button, Spinner, Card, Typography, IconButton } from "@material-tailwind/react";
+import {
+    Button, Spinner, Card, Typography, IconButton
+} from "@material-tailwind/react";
 import { PencilIcon, TrashIcon, EyeIcon, PlusIcon } from "@heroicons/react/24/outline";
-import MenuCreate from "./MenuCreate"; // <-- Modalni import qilamiz
-// import MenuEdit from "./MenuEdit";
-// import MenuDelete from "./MenuDelete";
+import MenuCreate from "./MenuCreate";
+import MenuEdit from "./MenuEdit";
+import MenuDelete from "./MenuDelete";
 
 export default function MenuCenter() {
-    const { id } = useParams();
+    const { id: categoryId } = useParams();
+    const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [editModal, setEditModal] = useState({ open: false, data: null });
-    const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
-    const [createModal, setCreateModal] = useState(false);
-    const navigate = useNavigate();
+
+    const [modals, setModals] = useState({
+        create: false,
+        edit: null,
+        delete: null
+    });
 
     const getMenus = async () => {
-        setLoading(true);
-        setError(null);
         try {
+            setLoading(true);
+            setError(null);
             const restaurant_id = localStorage.getItem("restaurant_id1");
-            const { data } = await $api.get(`/menu/${restaurant_id}?category_id=${id}`);
-            setMenus(Array.isArray(data) ? data : (data.data || []));
-        } catch (error) {
-            console.error("Menu olishda xatolik:", error);
-            setError("Menular yuklanmadi. Qayta urinib ko'ring.");
+            const response = await $api.get(`/menu/${restaurant_id}?category_id=${categoryId}`);
+            const data = Array.isArray(response.data) ? response.data : (response.data.data || []);
+            setMenus(data);
+        } catch (err) {
+            console.error("Xatolik:", err);
+            setError("Menularni yuklashda xatolik yuz berdi.");
             setMenus([]);
         } finally {
             setLoading(false);
@@ -34,25 +40,19 @@ export default function MenuCenter() {
     };
 
     useEffect(() => {
-        if (id) {
+        if (categoryId) {
             getMenus();
         }
-    }, [id]);
+    }, [categoryId]);
 
-    const handleCreateMenu = () => setCreateModal(true);
-    const handleEditMenu = (menu) => setEditModal({ open: true, data: menu });
-    const handleDeleteMenu = (menuId) => setDeleteModal({ open: true, id: menuId });
-    const handleViewMenu = (menuId) => navigate(`/admin/menu/${menuId}`);
+    const closeAllModals = () => {
+        setModals({ create: false, edit: null, delete: null });
+    };
 
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
-                <div className="text-center">
-                    <Spinner className="h-12 w-12 mb-4" />
-                    <Typography variant="h6" color="blue-gray">
-                        Menular yuklanmoqda...
-                    </Typography>
-                </div>
+                <Spinner className="h-12 w-12" />
             </div>
         );
     }
@@ -61,12 +61,8 @@ export default function MenuCenter() {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
                 <Card className="p-6 text-center max-w-md">
-                    <Typography variant="h6" color="red" className="mb-4">
-                        {error}
-                    </Typography>
-                    <Button onClick={getMenus} color="blue">
-                        Qayta yuklash
-                    </Button>
+                    <Typography variant="h6" color="red">{error}</Typography>
+                    <Button onClick={getMenus} className="mt-4">Qayta urinish</Button>
                 </Card>
             </div>
         );
@@ -74,71 +70,49 @@ export default function MenuCenter() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
                 <div>
-                    <Typography variant="h3" className="font-bold text-gray-900">
-                        Menular
-                    </Typography>
-                    <Typography variant="small" color="gray" className="mt-1">
-                        Kategoriya ID: {id}
-                    </Typography>
+                    <Typography variant="h3">Menular</Typography>
                 </div>
                 <Button
-                    onClick={handleCreateMenu}
                     color="blue"
-                    className="flex items-center justify-between mb-6"
+                    onClick={() => setModals({ ...modals, create: true })}
+                    className="flex items-center gap-2"
                 >
                     <PlusIcon className="h-5 w-5" />
                     Yangi menu
                 </Button>
             </div>
 
-            {/* Menu Items Grid */}
+            {/* Menu Cards */}
             {menus.length === 0 ? (
-                <Card className="p-8 text-center max-w-2xl mx-auto">
-                    <img 
-                        src="/empty-state.svg" 
-                        alt="No menus"
-                        className="h-40 mx-auto mb-6"
-                    />
-                    <Typography variant="h5" color="blue-gray" className="mb-2">
-                        Hech qanday menu topilmadi
-                    </Typography>
-                    <Typography color="gray" className="mb-6">
-                        Ushbu kategoriyada hali menu qo'shilmagan
-                    </Typography>
+                <Card className="p-8 text-center">
+                    <img src="/empty-state.svg" alt="Bo'sh" className="h-40 mx-auto mb-4" />
+                    <Typography variant="h5">Hech qanday menu topilmadi</Typography>
+                    <Typography color="gray">Kategoriya bo'sh, menu qo'shing</Typography>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {menus.map(menu => (
-                        <Card key={menu.id} className="overflow-hidden hover:shadow-xl transition-all">
-                            {/* Menu Image */}
-                            <div className="relative h-48 overflow-hidden">
-                                <img 
-                                    src={menu.image || '/food-placeholder.jpg'} 
+                        <Card key={menu.id} className="hover:shadow-md transition-all">
+                            <div className="relative h-48">
+                                <img
+                                    src={'/food-placeholder.jpg'}
                                     alt={menu.name}
-                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                    onError={(e) => {
-                                        e.target.src = '/food-placeholder.jpg';
-                                    }}
+                                    className="w-full h-full object-cover"
                                 />
-                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                                    <Typography variant="h5" color="white" className="font-bold">
-                                        {menu.name}
-                                    </Typography>
+                                <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-2">
+                                    <Typography variant="h5" color="white">{menu.name}</Typography>
                                 </div>
                             </div>
-                            
-                            {/* Menu Details */}
                             <div className="p-4">
-                                <Typography variant="small" color="gray" className="mb-3 line-clamp-2">
-                                    {menu.description || "Tavsif ko'rsatilmagan"}
+                                <Typography variant="small" className="line-clamp-2 mb-2">
+                                    {menu.description || "Tavsif mavjud emas"}
                                 </Typography>
-                                
-                                <div className="flex justify-between items-center mb-4">
+                                <div className="flex justify-between items-center mb-2">
                                     <Typography variant="h6" color="green">
-                                        {menu.price ? `${menu.price.toLocaleString()} so'm` : 'Narx ko\'rsatilmagan'}
+                                        {menu.price ? `${menu.price.toLocaleString()} so'm` : "Narx yo'q"}
                                     </Typography>
                                     {menu.is_available && (
                                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
@@ -146,33 +120,16 @@ export default function MenuCenter() {
                                         </span>
                                     )}
                                 </div>
-                                
-                                {/* Action Buttons */}
-                                <div className="flex justify-between gap-2">
-                                    <IconButton
-                                        color="blue"
-                                        size="sm"
-                                        onClick={() => handleEditMenu(menu)}
-                                        title="Tahrirlash"
-                                    >
+                                <div className="flex gap-2">
+                                    <IconButton onClick={() => setModals({ ...modals, edit: menu })}>
                                         <PencilIcon className="h-4 w-4" />
                                     </IconButton>
-                                    <IconButton
-                                        color="blue"
-                                        size="sm"
-                                        onClick={() => handleDeleteMenu(menu.id)}
-                                        title="O'chirish"
-                                    >
+                                    <IconButton onClick={() => setModals({ ...modals, delete: menu.id })}>
                                         <TrashIcon className="h-4 w-4" />
                                     </IconButton>
-                                    <IconButton
-                                        color="blue"
-                                        size="sm"
-                                        onClick={() => handleViewMenu(menu.id)}
-                                        title="Ko'rish"
-                                    >
+                                    {/* <IconButton onClick={() => navigate(`/admin/menu/${menu.id}`)}>
                                         <EyeIcon className="h-4 w-4" />
-                                    </IconButton>
+                                    </IconButton> */}
                                 </div>
                             </div>
                         </Card>
@@ -180,29 +137,24 @@ export default function MenuCenter() {
                 </div>
             )}
 
-            {/* Modal: MenuCreate */}
-            <MenuCreate 
-                open={createModal} 
-                setOpen={setCreateModal} 
+            {/* Modals */}
+            <MenuCreate
+                open={modals.create}
+                setOpen={(val) => setModals({ ...modals, create: val })}
                 refresh={getMenus}
             />
-
-            {/* Modal: MenuEdit va MenuDelete ni ham shu tarzda qo'shishingiz mumkin */}
-            {/* 
-            <MenuEdit 
-                open={editModal.open} 
-                setOpen={(v) => setEditModal({ open: v, data: v ? editModal.data : null })} 
-                initialData={editModal.data} 
-                refresh={getMenus} 
+            <MenuEdit
+                open={!!modals.edit}
+                setOpen={(val) => setModals({ ...modals, edit: val ? modals.edit : null })}
+                initialData={modals.edit}
+                refresh={getMenus}
             />
-            
-            <MenuDelete 
-                open={deleteModal.open} 
-                setOpen={(v) => setDeleteModal({ open: v, id: v ? deleteModal.id : null })} 
-                id={deleteModal.id} 
-                refresh={getMenus} 
+            <MenuDelete
+                open={!!modals.delete}
+                setOpen={(val) => setModals({ ...modals, delete: val ? modals.delete : null })}
+                id={modals.delete}
+                refresh={getMenus}
             />
-            */}
         </div>
     );
 }
